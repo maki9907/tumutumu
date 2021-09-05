@@ -193,6 +193,10 @@ public class GameSystem : MonoBehaviour
 
     void SpawnPointEfect(Vector2 position, int score)
     {
-        Instantiate(pointEfectPrefab, position,Quaternion.identity);
+        //ゲームオブジェクトの生成
+        GameObject pointObj = Instantiate(pointEfectPrefab, position,Quaternion.identity);
+        //コンポーネントの取得
+        PointEffect pointEffect = pointObj.GetComponent<PointEffect>();
+        pointEffect.Show(score);
     }
 }
