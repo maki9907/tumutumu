@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameSystem : MonoBehaviour
 {
@@ -15,12 +16,36 @@ public class GameSystem : MonoBehaviour
     [SerializeField] Text scoreText = default;
     [SerializeField] GameObject pointEfectPrefab;
 
-    Vector3 ballPosition;
+    [SerializeField] Text timerText = default;
+    int timeCount;
+
+    [SerializeField] GameObject resultPanel = default;
+    bool gameOver = false;
 
     void Start()
     {
+        SoundManager.instance.PlayBGM(SoundManager.BGM.Main);
+        timeCount = ParamsSO.Entity.timer;
         StartCoroutine(ballGenerator.Spawn(ParamsSO.Entity.initBallCount));
         score = 0;
+        StartCoroutine(UpdateTimer());
+    }
+
+    IEnumerator UpdateTimer()
+    {
+        while(timeCount > 0)
+        {
+            yield return new WaitForSeconds(1.0f);
+            timeCount -= 1;
+            timerText.text = timeCount.ToString();
+        }
+        gameOver = true;
+        resultPanel.SetActive(true);
+    }
+
+    public void OnrRetryButton()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     void AddScore(int point)
@@ -31,6 +56,10 @@ public class GameSystem : MonoBehaviour
 
     void Update()
     {
+        if (gameOver)
+        {
+            return;
+        }
         if (Input.GetMouseButtonDown(0))
         {
             //もしもボムだったら周囲のツムを消しつつ爆発する。
@@ -108,6 +137,9 @@ public class GameSystem : MonoBehaviour
                 Destroy(removeBalls[i].gameObject);
                 removeBalls[i].Explosion();
             }
+            //soundEffectを再生する
+            SoundManager.instance.PlaySE(SoundManager.SE.Destroy);
+
             //消した分だけツムを追加する
             StartCoroutine(ballGenerator.Spawn(removeBalls.Count));
 
@@ -145,6 +177,7 @@ public class GameSystem : MonoBehaviour
                 ball.GetComponent<SpriteRenderer>().color = ballColor;
             }
             ball.transform.localScale = Vector3.one * 1.4f;
+            SoundManager.instance.PlaySE(SoundManager.SE.Touch);
         }
     }
 
@@ -184,6 +217,7 @@ public class GameSystem : MonoBehaviour
             //このExplosion関数はエフェクト発生の関数
             explosionList[i].Explosion();
         }
+        SoundManager.instance.PlaySE(SoundManager.SE.Destroy);
         StartCoroutine(ballGenerator.Spawn(explosionList.Count));
         int score = explosionList.Count * ParamsSO.Entity.point;
         AddScore(score);

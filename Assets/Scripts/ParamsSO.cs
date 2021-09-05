@@ -13,6 +13,8 @@ public class ParamsSO : ScriptableObject
 
     [Header("ボール間の判定距離")]
     public float distance;
+    [Header("時間制限")]
+    public int timer;
 
     //ParamsSOが保存してある場所のパス
     public const string PATH = "ParamsSO";
